@@ -1,21 +1,26 @@
-import { model, Schema, Document } from 'mongoose';
-import { IUser } from '../interfaces/user.interface';
+// src/models/user.model.ts
+import { model, Schema } from 'mongoose';
+import { IUser, UserType } from '../interfaces/user.interface';
 import bcrypt from 'bcryptjs';
-import { Role } from './role.model';
 
 const userSchema = new Schema<IUser>({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, select: false },
-  role: { type: Schema.Types.ObjectId, ref: 'Role', required: true },
+  userType: { 
+    type: String, 
+    required: true, 
+    enum: Object.values(UserType),
+    default: UserType.EMPLOYEE 
+  },
   isActive: { type: Boolean, default: true },
   lastLogin: { type: Date }
 }, {
   timestamps: true
 });
 
-// Hash password before saving
+// Password hashing and comparison methods remain the same
 userSchema.pre<IUser>('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -28,7 +33,6 @@ userSchema.pre<IUser>('save', async function(next) {
   }
 });
 
-// Method to compare passwords
 userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };

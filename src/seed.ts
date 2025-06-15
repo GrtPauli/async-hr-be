@@ -1,33 +1,11 @@
+// src/seed.ts
 import { connectToDatabase } from './config/database';
-import { Role } from './models/role.model';
 import { User } from './models/user.model';
+import { UserType } from './interfaces/user.interface';
 
 const seedDatabase = async () => {
   try {
     await connectToDatabase();
-
-    // Create default roles
-    const adminRole = await Role.findOneAndUpdate(
-      { name: 'admin' },
-      {
-        name: 'admin',
-        permissions: ['all'],
-        description: 'Administrator with full access',
-        isDefault: false
-      },
-      { upsert: true, new: true }
-    );
-
-    const employeeRole = await Role.findOneAndUpdate(
-      { name: 'employee' },
-      {
-        name: 'employee',
-        permissions: ['leave:apply', 'claim:submit', 'profile:view', 'attendance:clock'],
-        description: 'Regular employee',
-        isDefault: true
-      },
-      { upsert: true, new: true }
-    );
 
     // Create admin user if not exists
     const adminEmail = 'admin@hrs.com';
@@ -38,8 +16,8 @@ const seedDatabase = async () => {
         firstName: 'Admin',
         lastName: 'User',
         email: adminEmail,
-        password: 'admin123', // In production, use a more secure password
-        role: adminRole._id
+        password: 'admin123',
+        userType: UserType.ADMIN
       });
       console.log('Admin user created');
     } else {

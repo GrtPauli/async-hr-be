@@ -38,7 +38,7 @@ export class AuthController {
     }
   }
 
-  static async getCurrentUser(req: Request, res: Response) {
+  static async getCurrentUser(req: any, res: Response) {
     try {
       // req.user is set by the auth middleware
       const user = await UserService.getUserById(req.user.id);

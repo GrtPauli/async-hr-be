@@ -1,16 +1,11 @@
 import { User } from '../models/user.model';
-import { IUser } from '../interfaces/user.interface';
-import { RoleService } from './role.service';
+import { IUser, UserType } from '../interfaces/user.interface';
 
 export class UserService {
   static async createUser(userData: Partial<IUser>) {
-    // If role is not provided, assign default role
-    if (!userData.role) {
-      const defaultRole = await RoleService.getDefaultRole();
-      if (!defaultRole) {
-        throw new Error('Default role not found');
-      }
-      userData.role = defaultRole._id;
+    // Set default userType if not provided
+    if (!userData.userType) {
+      userData.userType = UserType.EMPLOYEE;
     }
 
     const user = new User(userData);
@@ -18,15 +13,15 @@ export class UserService {
   }
 
   static async getUserById(id: string) {
-    return await User.findById(id).populate('role');
+    return await User.findById(id);
   }
 
   static async getUserByEmail(email: string) {
-    return await User.findOne({ email }).populate('role');
+    return await User.findOne({ email });
   }
-
+  
   static async getAllUsers() {
-    return await User.find().populate('role');
+    return await User.find();
   }
 
   static async updateUser(id: string, updateData: Partial<IUser>) {

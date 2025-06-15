@@ -1,20 +1,18 @@
+// src/middlewares/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service';
+import { IUser, UserType } from '../interfaces/user.interface';
 
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: any, res: Response, next: NextFunction) => {
   try {
-    // Get token from header
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
       throw new Error('Authentication required');
     }
 
-    // Validate token
     const user = await AuthService.validateToken(token);
-
-    // Attach user to request
-    req.user = user;
+    req.user = user as IUser;
 
     next();
   } catch (error) {
@@ -25,25 +23,22 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const roleMiddleware = (requiredRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (!req.user) {
-        throw new Error('Authentication required');
-      }
-
-      const userRole = req.user.role.name;
-
-      if (!requiredRoles.includes(userRole)) {
-        throw new Error('Insufficient permissions');
-      }
-
-      next();
-    } catch (error) {
-      res.status(403).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Authorization failed'
-      });
+// Simplified role middleware (now userType check)
+export const adminMiddleware = (req: any, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) {
+      throw new Error('Authentication required');
     }
-  };
+
+    if (req.user.userType !== UserType.ADMIN) {
+      throw new Error('Admin access required');
+    }
+
+    next();
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Authorization failed'
+    });
+  }
 };
