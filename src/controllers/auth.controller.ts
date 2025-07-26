@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
 import { IUser } from '../interfaces/user.interface';
+import { Profile } from '../models/profile.model';
 
 export class AuthController {
   static async login(req: Request, res: Response) {
@@ -26,6 +27,16 @@ export class AuthController {
       const userData: Partial<IUser> = req.body;
       const user = await UserService.createUser(userData);
       
+      await Profile.create({
+        user: user._id,
+        basicDetails: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          completed: false
+        }
+      });
+    
       res.status(201).json({
         success: true,
         data: user
